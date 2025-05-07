@@ -3,15 +3,23 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'react-calculator'
-        DOCKER_REGISTRY = 'your-dockerhub-username'
+        DOCKER_REGISTRY = 'sujith2606'
     }
 
     stages {
+        stage('Prepare Workspace') {
+            steps {
+                cleanWs() // Clears the working directory
+                git url: 'https://github.com/sujith-26/devops-final.git', branch: 'main' // Replace with your actual repo URL and branch
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:latest deployment/'
             }
         }
+
         stage('Push to DockerHub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
@@ -20,6 +28,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy to K8s') {
             steps {
                 sh "kubectl apply -f deployment/deployment.yaml"
